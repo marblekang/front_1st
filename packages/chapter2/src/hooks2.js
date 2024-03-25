@@ -1,4 +1,5 @@
 export function createHooks(callback) {
+  let animationId = null;
   const stateContext = {
     current: 0,
     states: [],
@@ -9,9 +10,6 @@ export function createHooks(callback) {
     memos: [],
   };
 
-  const batchingContext = {
-    newStates: [],
-  };
   function resetContext() {
     stateContext.current = 0;
     memoContext.current = 0;
@@ -24,14 +22,9 @@ export function createHooks(callback) {
 
     const setState = (newState) => {
       if (newState === states[current]) return;
-      batchingContext.newStates.push(newState);
-      requestAnimationFrame(() => {
-        let lastIndex = batchingContext.newStates.length - 1;
-        if (newState === batchingContext.newStates[lastIndex]) {
-          states[current] = newState;
-          callback();
-        }
-      });
+      states[current] = newState;
+      cancelAnimationFrame(animationId);
+      animationId = requestAnimationFrame(callback);
     };
 
     return [states[current], setState];
@@ -64,15 +57,16 @@ export function createHooks(callback) {
 
   return { useState, useMemo, resetContext };
 }
+let count = 0;
 const waitOneFrame = () =>
   new Promise((resolve) => requestAnimationFrame(resolve));
 
 const getRender = async () => {
-  let currentState = null;
   const render = () => {
+    count++;
     resetContext();
     const [a, setA] = useState("foo");
-    currentState = a;
+
     return { setA };
   };
 
@@ -87,7 +81,6 @@ const getRender = async () => {
   setA("test4");
   setA("test5");
   await waitOneFrame();
-  console.log(currentState, "currentState");
 };
 
 getRender();
