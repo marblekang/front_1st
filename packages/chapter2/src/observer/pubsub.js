@@ -3,7 +3,7 @@ let currentObserver = null;
 export const 구독 = (fn) => {
   currentObserver = { fn, key: new Set() };
   observers.add(currentObserver);
-  fn(); //durlt
+  fn(); // 1) fn 실행 => 2) get 함수 실행 => get 할때마다 (참조하고 있는 property 갯수만큼) 실행되면서 key 추가
 };
 
 export const 발행기관 = (obj) => {
@@ -41,15 +41,12 @@ const mockFn3 = () => `a + b = ${상태.a + 상태.b}`;
 const mockFn4 = () => `a * b = ${상태.a * 상태.b}`;
 const mockFn5 = () => `a - b = ${상태.a - 상태.b}`;
 
-구독(mockFn1); // 1)
+구독(mockFn1);
 구독(mockFn2);
 구독(mockFn3);
 구독(mockFn4);
 구독(mockFn5);
 
-// 구독을 하면 일단 알림을 받는다.
-
-// 발행기관의 상태가 변경되면 알림을 전송한다.
 상태.a = 100;
 
 상태.b = 200;
