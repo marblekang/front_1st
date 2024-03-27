@@ -13,7 +13,7 @@ export const 구독 = (fn) => {
 export const 발행기관 = (obj) => {
   let _publisher = {};
   let state = { ...obj };
-  const keys = Object.keys(obj);
+  const keys = Object.keys(state);
   function notifySubscribers(key) {
     observers.forEach((val) => {
       if (val.keys.has(key)) {
