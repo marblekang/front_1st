@@ -2,16 +2,24 @@ import { 발행기관 as createPublisher, 구독 } from "./pubsub.js";
 export class Store {
   #state;
   #mutations;
-  state = {};
+  state;
+  keys;
+  id;
 
   constructor({ state, mutations, actions }) {
-    this.state = createPublisher(state);
-    this.#mutations = mutations;
+    this.#state = createPublisher(state);
+    this.#mutations = Object.assign(mutations);
+    this.state = {};
+    this.keys = Object.keys(state);
 
-    // // state를 직접적으로 수정하지 못하도록 다음과 같이 정의한다.
-    // Object.keys(#state).forEach((key) => {
-    //   Object.defineProperty(this.state, key, { get: () => this.#state[key] });
-    // });
+    this.keys.forEach((key) => {
+      const that = this;
+      Object.defineProperty(this.state, key, {
+        get() {
+          return that.#state[key];
+        },
+      });
+    });
   }
 
   commit(action, payload) {
