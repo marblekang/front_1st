@@ -1,43 +1,34 @@
-let observers = new Set();
 let currentObserver = null;
+let observers = {};
 export const 구독 = (fn) => {
-  currentObserver = { fn, keys: new Set() };
-  observers.add(currentObserver);
-  fn(); // 1) fn 실행 => 2) get 함수 실행 => get 할때마다 (참조하고 있는 property 갯수만큼) 실행되면서 key 추가
+  currentObserver = fn;
+  fn(); // 이거 돌면서 get은 참조하는 key 갯수만큼 실행됨.
+  // 참조 (구독) 은 초기에 한번만 실행되면 됨.
+  currentObserver = null;
 };
-/* 
-발행기관
-1) state를 저장함.
-2) 
-*/
+// observer를 이런식으로 관리할것임 observer = {a:[],b:[]}
 export const 발행기관 = (obj) => {
   let _publisher = {};
-  let state = { ...obj };
-  const keys = Object.keys(state);
-  function notifySubscribers(key) {
-    observers.forEach((val) => {
-      if (val.keys.has(key)) {
-        val.fn();
-      }
-    });
-  }
+  const keys = Object.keys(obj);
+  const notifyObservers = (key) => {
+    observers[key].forEach((fn) => fn());
+  };
   keys.forEach((key) => {
     Object.defineProperty(_publisher, key, {
       get() {
         if (currentObserver) {
-          currentObserver.keys.add(key);
+          if (!observers[key]) {
+            observers[key] = new Set();
+          }
+          observers[key].add(currentObserver);
         }
-        return state[key];
+        return obj[key];
       },
       set(newValue) {
-        if (newValue === state[key]) {
-          return;
-        }
-        state[key] = newValue;
-        notifySubscribers(key);
+        obj[key] = newValue;
+        notifyObservers(key);
       },
     });
   });
-
   return _publisher;
 };
